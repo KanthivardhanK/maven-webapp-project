@@ -47,7 +47,7 @@
 <body>
 
 <header>
-    <h1>🚀 WELCOME TO KK DEVOPS ONLINE TRAINING KK BATCH ON JUNE 28 2026 7:30 PM IST🚀</h1>
+    <h1>WELCOME TO KV DEVOPS ONLINE TRAINING KV BATCH ON JUNE 28 2026 7:30 PM IST</h1>
     <h3>Training | Development | Consulting</h3>
 </header>
 
