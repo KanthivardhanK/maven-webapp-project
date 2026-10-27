@@ -23,7 +23,7 @@
 		<log4j.version>1.2.17</log4j.version>		
 		<sonar.host.url>http://15.206.90.183:9000/</sonar.host.url>
 		<sonar.login>admin</sonar.login>
-		<sonar.token >squ_6f5eac54062743bfe67b68a1d957ae2220b7faff</sonar.token > 
+		<sonar.token >squ_f978728472c86a3796282ffd96f4461780568aaa</sonar.token > 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -98,13 +98,13 @@
 	    <repository>
 	      <id>nexus</id>
 	      <name>KK FUNDA Releases Nexus Repository</name>
-	      <url>http://13.203.222.209:8081/repository/jio-release/</url>
+	      <url>http://65.0.177.111:8081/repository/webapp-release/</url>
 	    </repository>
 	    
 	    <snapshotRepository>
 	      <id>nexus</id>
 	      <name>KK FUNDA Snapshot Nexus Repository </name>
-	      <url>http://13.203.222.209:8081/repository/jio-snapshot/</url>
+	      <url>http://65.0.177.111:8081/repository/webapp-snapshot/</url>
 	    </snapshotRepository>
 	    
 	</distributionManagement>
