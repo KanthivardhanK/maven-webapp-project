@@ -1,106 +1,80 @@
-//scripted-way-PL
+pipeline {
+    agent any
 
-node
-{
-
-def mavenHome= tool name: "maven-3.9.0"
-echo "git branch Name: ${env.BRANCH_NAME}"
-echo "build number: ${env.BUILD_NUMBER}"
-
-  try
-  {
-     stage('git checkout')
-   {
-      notifyBuild('STARTED')
-      git branch: 'master', url: 'https://github.com/kkdevopsb9/maven-webapplication-project-kkfunda.git'
-   }
-   stage('COMPILE')
-   {
-    sh  "${mavenHome}/bin/mvn compile" 
-   }
-  stage('SQ REPORT') {
-        sh "${mavenHome}/bin/mvn sonar:sonar"
+    tools {
+        maven 'maven-3.9.0'
     }
 
-    stage('SQ Approval') {
-
-        def decision = input(
-            id: 'SQApproval',
-            message: 'Please review the SonarQube report and approve/reject the pipeline.',
-            parameters: [
-                choice(
-                    name: 'ACTION',
-                    choices: ['Approve', 'Reject'],
-                    description: 'Select your action'
-                )
-            ]
-        )
-
-        if (decision == 'Reject') {
-            error("Pipeline rejected after SonarQube review.")
+    stages {
+        stage('Git Checkout') {
+            steps {
+                notifyBuild('STARTED')
+                git branch: 'main',
+                    url: 'https://github.com/KanthivardhanK/maven-webapp-project.git'
+            }
         }
 
-        echo "Pipeline approved. Proceeding to next stage..."
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('SQ REPORT') {
+            steps {
+                sh 'mvn sonar:sonar'
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
+                sh 'mvn deploy'
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'tomcat-cred',
+                        usernameVariable: 'TOMCAT_USER',
+                        passwordVariable: 'TOMCAT_PASS'
+                    )
+                ]) {
+                    sh '''
+                        curl --fail --show-error \
+                        --user "$TOMCAT_USER:$TOMCAT_PASS" \
+                        --upload-file target/maven-web-application.war \
+                        "http://13.201.189.6:8080/manager/text/deploy?path=/maven-web-application&update=true"
+                    '''
+                }
+            }
+        }
     }
 
-
-    
-   stage('Build')
-   {
-     sh  "${mavenHome}/bin/mvn package"
-   }
-   stage('Deploy to Nexus')
-   {
-      sh  "${mavenHome}/bin/mvn deploy"
-   }
-
-   stage('Deploy to Tomcat') 
-    {
-      
-      sh """
-
-      curl -u kk:password \
---upload-file /var/lib/jenkins/workspace/webapp-Scripted-Way-PL/target/maven-web-application.war \
-"http://52.66.203.242:8080/manager/text/deploy?path=/maven-web-application&update=true"
-          
-        """
+    post {
+        success {
+            notifyBuild('SUCCESS')
+        }
+        failure {
+            notifyBuild('FAILURE')
+        }
     }
-  
-  }   //try block ending
-   catch (e) {
-   
-       currentBuild.result = "FAILED"
+}
 
-  } finally {
-    // Success or failure, always send notifications
-    notifyBuild(currentBuild.result)       //function calling
-  }
-
-} //node ending
-
+// Notification method
 def notifyBuild(String buildStatus = 'STARTED') {
-  // build status of null means successful
-  buildStatus =  buildStatus ?: 'SUCCESS'
+    def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+    def summary = "${subject} (${env.BUILD_URL})"
 
-  // Default values
-  def colorName = 'RED'
-  def colorCode = '#FF0000'
-  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
-  def summary = "${subject} (${env.BUILD_URL})"
+    def colorCode = [
+        STARTED: '#FFFF00',
+        SUCCESS: '#00FF00'
+    ].get(buildStatus, '#FF0000')
 
-  // Override default values based on build status
-  if (buildStatus == 'STARTED') {
-    color = 'YELLOW'
-    colorCode = '#FFFF00'
-  } else if (buildStatus == 'SUCCESS') {
-    color = 'GREEN'
-    colorCode = '#27F584'
-  } else {
-    color = 'RED'
-    colorCode = '#FF0000'
-  }
-
-  // Send notifications
-  slackSend (color: colorCode, message: summary, channel: '#dev-b9')
-  
+    slackSend(
+        color: colorCode,
+        message: summary
+          # Here we didn’t mention any channel name. then it will notify the default channel(all-kvdevops) mentioned in the Jenkins system configuration slack settings. Or else if we want we can mention channel name after the message here as → channel: '#devops-alerts'
+    )
 }
