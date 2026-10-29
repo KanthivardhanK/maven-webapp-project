@@ -75,6 +75,6 @@ def notifyBuild(String buildStatus = 'STARTED') {
     slackSend(
         color: colorCode,
         message: summary
-          # Here we didn’t mention any channel name. then it will notify the default channel(all-kvdevops) mentioned in the Jenkins system configuration slack settings. Or else if we want we can mention channel name after the message here as → channel: '#devops-alerts'
+          // Here we didn’t mention any channel name. then it will notify the default channel(all-kvdevops) mentioned in the Jenkins system configuration slack settings. Or else if we want we can mention channel name after the message here as → channel: '#devops-alerts'
     )
 }
